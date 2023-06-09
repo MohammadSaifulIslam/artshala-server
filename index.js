@@ -33,6 +33,14 @@ async function run() {
       .db("artshalaDb")
       .collection("instructors");
 
+    // users related api
+    // get all users
+    app.get("/users", async (req, res) => {
+      const result = await usersCollenction.find().toArray();
+      res.send(result);
+    });
+
+    // save user's information
     app.put("/users/:email", async (req, res) => {
       const user = req.body;
       const email = req.params.email;
@@ -58,18 +66,6 @@ async function run() {
       res.send(result);
     });
 
-
-
-
-
-
-
-
-
-
-
-
-    
     await client.db("admin").command({ ping: 1 });
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
