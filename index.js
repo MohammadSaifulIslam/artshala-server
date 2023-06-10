@@ -155,6 +155,15 @@ async function run() {
       res.send(result)
     })
 
+    // get all classes of instructor by email
+    app.get('/class/:email', async(req, res)=> {
+      const email = req.params.email;
+      console.log('hit the api')
+      const query = {instructor_email: email}
+      const result = await classCollenction.find(query).toArray()
+      res.send(result)
+    })
+
     await client.db("admin").command({ ping: 1 });
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
