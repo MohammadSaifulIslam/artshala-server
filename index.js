@@ -9,7 +9,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.kgqetuh.mongodb.net/?retryWrites=true&w=majority`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -49,20 +49,34 @@ async function run() {
       const options = { upsert: true };
       const updateUser = {
         $set: {
-          user,
+         ...user,
         },
       };
 
       const isExist = await usersCollenction.findOne(query);
       if (isExist) {
         return;
+      } else {
+        const result = await usersCollenction.updateOne(
+          user,
+          updateUser,
+          options
+        );
+        res.send(result);
       }
+    });
 
-      const result = await usersCollenction.updateOne(
-        user,
-        updateUser,
-        options
-      );
+    app.patch("/user-role/:id", async (req, res) => {
+      const id = req.params.id;
+      const role = req.query.role;
+      console.log(role);
+      const query = { _id: new ObjectId(id) };
+      const updatedDoc = {
+        $set: {
+          role: role,
+        },
+      };
+      const result = await usersCollenction.updateOne(query, updatedDoc);
       res.send(result);
     });
 
