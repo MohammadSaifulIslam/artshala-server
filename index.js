@@ -129,6 +129,11 @@ async function run() {
       }
     });
 
+    // get all classes
+    app.get('/all-class', async(req, res)=>{
+      const result = await classCollenction.find().toArray()
+      res.send(result)
+    })
 
 
     // -------------------------instructor relared api-----------------
@@ -158,7 +163,6 @@ async function run() {
     // get all classes of instructor by email
     app.get('/class/:email', async(req, res)=> {
       const email = req.params.email;
-      console.log('hit the api')
       const query = {instructor_email: email}
       const result = await classCollenction.find(query).toArray()
       res.send(result)
