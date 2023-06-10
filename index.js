@@ -129,6 +129,25 @@ async function run() {
       }
     });
 
+
+
+    // -------------------------instructor relared api-----------------
+    // verify if the user is instructor or not
+    app.get("/users/instructor/:email", verifyJWT, async (req, res) => {
+      const email = req.params.email;
+      const decodedEamil = req.decoded.email;
+      if (email !== decodedEamil) {
+        res.send({ instructor: false });
+      }
+
+      const query = { email: email };
+      const user = await usersCollenction.findOne(query);
+      if (user) {
+        const result = { instructor : user?.role === "instructor" };
+        res.send(result);
+      }
+    });
+
     await client.db("admin").command({ ping: 1 });
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
