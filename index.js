@@ -10,6 +10,28 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// verify jwt token
+const verifyJWT = (req, res, next) => {
+  const authorization = req.headers.authorization;
+
+  if (!authorization) {
+    return res.status(401).send({ error: true, message: "unautorized access" });
+  }
+
+  // split token
+  const token = authorization.split(" ")[1];
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+    if (err) {
+      return res
+        .status(401)
+        .send({ error: true, message: "unautorized access" });
+    }
+
+    req.decoded = decoded;
+    next();
+  });
+};
+
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.kgqetuh.mongodb.net/?retryWrites=true&w=majority`;
 
@@ -43,7 +65,7 @@ async function run() {
       res.send({ token });
     });
 
-    // users related api
+    // ---------------------------users related api---------------------------
     // get all users
     app.get("/users", async (req, res) => {
       const result = await usersCollenction.find().toArray();
@@ -88,6 +110,23 @@ async function run() {
       };
       const result = await usersCollenction.updateOne(query, updatedDoc);
       res.send(result);
+    });
+
+    // -------------------------admin relared api-----------------
+    // verify if the user is admin or not
+    app.get("/users/admin/:email", verifyJWT, async (req, res) => {
+      const email = req.params.email;
+      const decodedEamil = req.decoded.email;
+      if (email !== decodedEamil) {
+        res.send({ admin: false });
+      }
+      
+      const query = { email: email };
+      const user = await usersCollenction.findOne(query);
+      if (user) {
+        const result = { admin: user?.role === "admin" };
+        res.send(result);
+      }
     });
 
     await client.db("admin").command({ ping: 1 });
