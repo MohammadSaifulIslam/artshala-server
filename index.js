@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const jwt = require("jsonwebtoken");
 require("dotenv").config();
 
 const port = process.env.PORT || 5000;
@@ -33,6 +34,15 @@ async function run() {
       .db("artshalaDb")
       .collection("instructors");
 
+    // jwt token
+    app.post("/jwt", (req, res) => {
+      const user = req.body;
+      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
+        expiresIn: "1h",
+      });
+      res.send({ token });
+    });
+
     // users related api
     // get all users
     app.get("/users", async (req, res) => {
@@ -49,7 +59,7 @@ async function run() {
       const options = { upsert: true };
       const updateUser = {
         $set: {
-         ...user,
+          ...user,
         },
       };
 
@@ -69,7 +79,7 @@ async function run() {
     app.patch("/user-role/:id", async (req, res) => {
       const id = req.params.id;
       const role = req.query.role;
-      console.log(role);
+
       const query = { _id: new ObjectId(id) };
       const updatedDoc = {
         $set: {
