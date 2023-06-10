@@ -120,7 +120,7 @@ async function run() {
       if (email !== decodedEamil) {
         res.send({ admin: false });
       }
-      
+
       const query = { email: email };
       const user = await usersCollenction.findOne(query);
       if (user) {
@@ -130,11 +130,24 @@ async function run() {
     });
 
     // get all classes
-    app.get('/all-class', async(req, res)=>{
-      const result = await classCollenction.find().toArray()
-      res.send(result)
-    })
+    app.get("/all-class", async (req, res) => {
+      const result = await classCollenction.find().toArray();
+      res.send(result);
+    });
 
+    app.patch("/class-status/:id", async (req, res) => {
+      const id = req.params.id;
+      const status = req.query.status;
+      const query = { _id: new ObjectId(id) };
+      const updatedStatus = {
+        $set: {
+          status: status,
+        },
+      };
+
+      const result = await classCollenction.updateOne(query, updatedStatus);
+      res.send(result)
+    });
 
     // -------------------------instructor relared api-----------------
     // verify if the user is instructor or not
@@ -148,25 +161,25 @@ async function run() {
       const query = { email: email };
       const user = await usersCollenction.findOne(query);
       if (user) {
-        const result = { instructor : user?.role === "instructor" };
+        const result = { instructor: user?.role === "instructor" };
         res.send(result);
       }
     });
 
-    // add a class 
-    app.post('/class', async(req, res)=>{
+    // add a class
+    app.post("/class", async (req, res) => {
       const classData = req.body;
-      const result = await classCollenction.insertOne(classData)
-      res.send(result)
-    })
+      const result = await classCollenction.insertOne(classData);
+      res.send(result);
+    });
 
     // get all classes of instructor by email
-    app.get('/class/:email', async(req, res)=> {
+    app.get("/class/:email", async (req, res) => {
       const email = req.params.email;
-      const query = {instructor_email: email}
-      const result = await classCollenction.find(query).toArray()
-      res.send(result)
-    })
+      const query = { instructor_email: email };
+      const result = await classCollenction.find(query).toArray();
+      res.send(result);
+    });
 
     await client.db("admin").command({ ping: 1 });
     console.log(
