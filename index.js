@@ -52,7 +52,9 @@ async function run() {
 
     const usersCollenction = client.db("artshalaDb").collection("users");
     const classCollenction = client.db("artshalaDb").collection("classes");
-    const selectedClassesCollenction = client.db("artshalaDb").collection("selectedClasses");
+    const selectedClassesCollenction = client
+      .db("artshalaDb")
+      .collection("selectedClasses");
 
     // jwt token
     app.post("/jwt", (req, res) => {
@@ -97,16 +99,16 @@ async function run() {
     });
 
     // get all instructors
-    app.get('/instructors' , async(req, res)=>{
-      const query = {role: "instructor"}
-      const result = await usersCollenction.find(query).toArray()
-      res.send(result)
-    })
-    // get class 
-    app.get('/classes', async(req, res)=>{
-      const result = await classCollenction.find().toArray()
-      res.send(result)
-    })
+    app.get("/instructors", async (req, res) => {
+      const query = { role: "instructor" };
+      const result = await usersCollenction.find(query).toArray();
+      res.send(result);
+    });
+    // get class
+    app.get("/classes", async (req, res) => {
+      const result = await classCollenction.find().toArray();
+      res.send(result);
+    });
 
     // -------------------------admin relared api-----------------
     // verify if the user is admin or not
@@ -208,17 +210,23 @@ async function run() {
       res.send(result);
     });
 
-
     // ------------------------ student related api---------------------
     // select class
-    app.post('/select-class', async(req, res)=>{
+    app.post("/select-class", async (req, res) => {
       const selectedClassInfo = req.body;
-      const result = await selectedClassesCollenction.insertOne(selectedClassInfo);
-      res.send(result)
-    })
+      const result = await selectedClassesCollenction.insertOne(
+        selectedClassInfo
+      );
+      res.send(result);
+    });
 
-
-
+    // get student's selected classes by email
+    app.get("/select-class/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { student_email: email };
+      const result = await selectedClassesCollenction.find(query).toArray();
+      res.send(result);
+    });
 
     await client.db("admin").command({ ping: 1 });
     console.log(
