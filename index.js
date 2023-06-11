@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
+const stripe = require("stripe")(process.env.STIPE_SECRET_KEY);
 
 const port = process.env.PORT || 5000;
 const app = express();
@@ -226,6 +227,38 @@ async function run() {
       const query = { student_email: email };
       const result = await selectedClassesCollenction.find(query).toArray();
       res.send(result);
+    });
+
+    // remove selected class
+    app.delete("/select-class/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await selectedClassesCollenction.deleteOne(query);
+      res.send(result);
+    });
+
+    // ---------------------------- payment related api--------------------------
+    // get information of selected class
+    app.get("/select-single-class/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = {_id : new ObjectId(id)}
+      const result = await selectedClassesCollenction.findOne(query)
+      res.send(result)
+    });
+    
+    // stripe payment calculation
+    app.post("/create-payment-intent", verifyJWT, async (req, res) => {
+      const { price } = req.body;
+      const amount = price * 100;
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: amount,
+        currency: "usd",
+        payment_method_types: ["card"],
+      });
+
+      res.send({
+        clientSecret: paymentIntent.client_secret,
+      });
     });
 
     await client.db("admin").command({ ping: 1 });
