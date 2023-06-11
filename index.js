@@ -52,9 +52,7 @@ async function run() {
 
     const usersCollenction = client.db("artshalaDb").collection("users");
     const classCollenction = client.db("artshalaDb").collection("classes");
-    const instructorCollenction = client
-      .db("artshalaDb")
-      .collection("instructors");
+    const selectedClassesCollenction = client.db("artshalaDb").collection("selectedClasses");
 
     // jwt token
     app.post("/jwt", (req, res) => {
@@ -65,7 +63,7 @@ async function run() {
       res.send({ token });
     });
 
-    // ---------------------------users related api---------------------------
+    // ---------------------------common api---------------------------
     // get all users
     app.get("/users", async (req, res) => {
       const result = await usersCollenction.find().toArray();
@@ -98,19 +96,17 @@ async function run() {
       }
     });
 
-    app.patch("/user-role/:id", async (req, res) => {
-      const id = req.params.id;
-      const role = req.query.role;
-
-      const query = { _id: new ObjectId(id) };
-      const updatedDoc = {
-        $set: {
-          role: role,
-        },
-      };
-      const result = await usersCollenction.updateOne(query, updatedDoc);
-      res.send(result);
-    });
+    // get all instructors
+    app.get('/instructors' , async(req, res)=>{
+      const query = {role: "instructor"}
+      const result = await usersCollenction.find(query).toArray()
+      res.send(result)
+    })
+    // get class 
+    app.get('/classes', async(req, res)=>{
+      const result = await classCollenction.find().toArray()
+      res.send(result)
+    })
 
     // -------------------------admin relared api-----------------
     // verify if the user is admin or not
@@ -127,6 +123,21 @@ async function run() {
         const result = { admin: user?.role === "admin" };
         res.send(result);
       }
+    });
+
+    // make a user instructor
+    app.patch("/user-role/:id", async (req, res) => {
+      const id = req.params.id;
+      const role = req.query.role;
+
+      const query = { _id: new ObjectId(id) };
+      const updatedDoc = {
+        $set: {
+          role: role,
+        },
+      };
+      const result = await usersCollenction.updateOne(query, updatedDoc);
+      res.send(result);
     });
 
     // get all classes
@@ -196,6 +207,18 @@ async function run() {
       const result = await classCollenction.find(query).toArray();
       res.send(result);
     });
+
+
+    // ------------------------ student related api---------------------
+    // select class
+    app.post('/select-class', async(req, res)=>{
+      const selectedClassInfo = req.body;
+      const result = await selectedClassesCollenction.insertOne(selectedClassInfo);
+      res.send(result)
+    })
+
+
+
 
     await client.db("admin").command({ ping: 1 });
     console.log(
