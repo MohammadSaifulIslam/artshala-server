@@ -135,6 +135,7 @@ async function run() {
       res.send(result);
     });
 
+    // class status (approve or deny) api
     app.patch("/class-status/:id", async (req, res) => {
       const id = req.params.id;
       const status = req.query.status;
@@ -146,7 +147,22 @@ async function run() {
       };
 
       const result = await classCollenction.updateOne(query, updatedStatus);
-      res.send(result)
+      res.send(result);
+    });
+
+    // feedback api
+    app.patch("/class-feedback/:id", async (req, res) => {
+      const id = req.params.id;
+      const feedback = req.body.feedback;
+      console.log(feedback);
+      const query = { _id: new ObjectId(id) };
+      const updatedFeedback = {
+        $set: {
+          feedback: feedback,
+        },
+      };
+      const result = await classCollenction.updateOne(query, updatedFeedback);
+      res.send(result);
     });
 
     // -------------------------instructor relared api-----------------
