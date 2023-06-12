@@ -108,9 +108,9 @@ async function run() {
     });
     // get class
     app.get("/classes", async (req, res) => {
-      const query = {status : "Approved"}
+      const query = { status: "Approved" };
       const filter = {
-        sort :  { enrolled_students : - 1}
+        sort: { enrolled_students: -1 },
       };
       const result = await classCollenction.find(query, filter).toArray();
       res.send(result);
@@ -275,23 +275,31 @@ async function run() {
 
     // reduce available seat after student paument
     app.patch("/class/:id", async (req, res) => {
+      console.log("api heats -----------");
       const id = req.params.id;
-      const reduceSeats = req.body.reduceSeats;
       const query = { _id: new ObjectId(id) };
-      const updatedDoc = {
-        $set: {
-          available_seats: reduceSeats,
-        },
-      };
-      const result = await classCollenction.updateOne(query, updatedDoc);
-      res.send(result);
+      const findClass = await classCollenction.findOne(query);
+      if (findClass) {
+        console.log(findClass);
+        const reduceSeats = findClass.available_seats - 1;
+        const incrimentEnrolledStudents = findClass.enrolled_students + 1;
+
+        const updatedDoc = {
+          $set: {
+            available_seats: reduceSeats,
+            enrolled_students: incrimentEnrolledStudents,
+          },
+        };
+        const result = await classCollenction.updateOne(query, updatedDoc);
+        res.send(result);
+      }
     });
 
     // get payment history and info by student's email
 
     app.get("/payments/:email", async (req, res) => {
       const email = req.params.email;
-  
+
       const query = { email: email };
       const options = {
         sort: { date: -1 },
