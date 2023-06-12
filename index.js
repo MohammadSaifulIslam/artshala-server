@@ -53,6 +53,7 @@ async function run() {
 
     const usersCollenction = client.db("artshalaDb").collection("users");
     const classCollenction = client.db("artshalaDb").collection("classes");
+    const paymentCollenction = client.db("artshalaDb").collection("payments");
     const selectedClassesCollenction = client
       .db("artshalaDb")
       .collection("selectedClasses");
@@ -168,7 +169,7 @@ async function run() {
     app.patch("/class-feedback/:id", async (req, res) => {
       const id = req.params.id;
       const feedback = req.body.feedback;
-      console.log(feedback);
+
       const query = { _id: new ObjectId(id) };
       const updatedFeedback = {
         $set: {
@@ -241,11 +242,11 @@ async function run() {
     // get information of selected class
     app.get("/select-single-class/:id", async (req, res) => {
       const id = req.params.id;
-      const query = {_id : new ObjectId(id)}
-      const result = await selectedClassesCollenction.findOne(query)
-      res.send(result)
+      const query = { _id: new ObjectId(id) };
+      const result = await selectedClassesCollenction.findOne(query);
+      res.send(result);
     });
-    
+
     // stripe payment calculation
     app.post("/create-payment-intent", verifyJWT, async (req, res) => {
       const { price } = req.body;
@@ -259,6 +260,30 @@ async function run() {
       res.send({
         clientSecret: paymentIntent.client_secret,
       });
+    });
+
+    // payment information save api
+    app.post("/payments", async (req, res) => {
+      const paymentData = req.body;
+      const result = await paymentCollenction.insertOne(paymentData);
+      res.send(result);
+    });
+
+    // reduce available seat after student paument
+    app.patch("/class/:id", async (req, res) => {
+      const id = req.params.id;
+      console.log(id)
+      const reduceSeats = req.body.reduceSeats;
+      const query = { _id: new ObjectId(id) };
+      const findclass = await classCollenction.findOne(query);
+      console.log(reduceSeats, findclass)
+      const updatedDoc = {
+        $set: {
+          available_seats : reduceSeats,
+        },
+      };
+      const result = await classCollenction.updateOne(query, updatedDoc);
+      res.send(result);
     });
 
     await client.db("admin").command({ ping: 1 });
