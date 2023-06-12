@@ -272,17 +272,27 @@ async function run() {
     // reduce available seat after student paument
     app.patch("/class/:id", async (req, res) => {
       const id = req.params.id;
-      console.log(id)
       const reduceSeats = req.body.reduceSeats;
       const query = { _id: new ObjectId(id) };
-      const findclass = await classCollenction.findOne(query);
-      console.log(reduceSeats, findclass)
       const updatedDoc = {
         $set: {
-          available_seats : reduceSeats,
+          available_seats: reduceSeats,
         },
       };
       const result = await classCollenction.updateOne(query, updatedDoc);
+      res.send(result);
+    });
+
+    // get payment history and info by student's email
+
+    app.get("/payments/:email", async (req, res) => {
+      const email = req.params.email;
+      console.log(email);
+      const query = { email: email };
+      const options = {
+        sort: { date: -1 },
+      };
+      const result = await paymentCollenction.find(query, options).toArray();
       res.send(result);
     });
 
