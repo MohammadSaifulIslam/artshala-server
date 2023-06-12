@@ -108,7 +108,11 @@ async function run() {
     });
     // get class
     app.get("/classes", async (req, res) => {
-      const result = await classCollenction.find().toArray();
+      const query = {status : "Approved"}
+      const filter = {
+        sort :  { enrolled_students : - 1}
+      };
+      const result = await classCollenction.find(query, filter).toArray();
       res.send(result);
     });
 
@@ -287,7 +291,7 @@ async function run() {
 
     app.get("/payments/:email", async (req, res) => {
       const email = req.params.email;
-      console.log(email);
+  
       const query = { email: email };
       const options = {
         sort: { date: -1 },
